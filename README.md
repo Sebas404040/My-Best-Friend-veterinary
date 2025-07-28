@@ -610,4 +610,392 @@ Este registro permite:
 
 - Garantizar la salud preventiva de los animales bajo cuidado.
 
+## Estructura DQL (Data Query Language)
 
+Aqui se presentan las diferentes consultas utilizadas en las tablas de la veterinaria.
+
+
+### Creación de tabla a partir de una consulta
+
+```sql
+CREATE TABLE Mascotas_Citas_Julio2025 AS
+SELECT m.idMascota, m.nombre AS nombre_mascota, c.fecha_cita AS fecha_cita
+FROM Mascota m
+JOIN Cita c ON m.idMascota = c.Mascota_idMascota
+WHERE c.fecha_cita BETWEEN '2025-07-01' AND '2025-07-31';
+```
+
+Descripción:
+Esta consulta crea una nueva tabla llamada Mascotas_Citas_Julio2025 que almacena información de las mascotas que tienen citas durante el mes de julio del año 2025.
+
+**Características importantes de la consulta:**
+
+- 🔁 JOIN: Se hace una combinación entre la tabla Mascota (alias m) y Cita (alias c) para unir los datos relacionados.
+
+- 📆 Filtro por rango de fechas: Se utiliza BETWEEN para seleccionar únicamente las citas ocurridas entre el 1 y el 31 de julio de 2025.
+
+🏷️ Alias en campos:
+
+- m.nombre AS nombre_mascota permite personalizar el nombre del campo resultante.
+
+- c.fecha_cita AS fecha_cita también aplica alias, aunque mantiene el nombre original.
+
+🆕 Creación de tabla con resultado de consulta: CREATE TABLE ... AS SELECT ... genera automáticamente una nueva tabla con los datos seleccionados.
+
+### Creación de tabla con alias en subconsulta y funciones de agregación
+
+```sql
+-- Mascotas con numero de citas asistidas
+CREATE TABLE Mascotas_Con_Citas AS
+SELECT mc.idMascota, mc.nombre AS nombre_mascota, datos.num_citas
+FROM Mascota mc
+JOIN (
+    SELECT c.Mascota_idMascota, 
+        COUNT(*) AS num_citas
+    FROM Cita c
+    GROUP BY c.Mascota_idMascota) AS datos ON mc.idMascota = datos.Mascota_idMascota;
+```
+
+Descripción:
+Esta consulta crea una nueva tabla llamada Mascotas_Con_Citas, que contiene información de todas las mascotas junto con el número de citas asistidas por cada una.
+
+**Características importantes de la consulta:**
+
+- 🧮 Función de agregación:
+
+COUNT(*) AS num_citas cuenta el número total de citas por mascota.
+
+Se aplica en una subconsulta agrupada por Mascota_idMascota.
+
+- 🏷️ Alias en subconsulta:
+
+La subconsulta que cuenta las citas se llama datos.
+
+- 🏷️ Alias en campos:
+
+Se renombran campos en la consulta principal como nombre_mascota y num_citas para mayor claridad.
+
+- 🔁 JOIN:
+
+Se une la tabla Mascota (mc) con la subconsulta datos usando el identificador de mascota.
+
+### Servicios más caros que el promedio
+
+```sql
+-- Servicios mas caros
+SELECT nombre 
+FROM Servicio 
+WHERE precio > (
+    SELECT AVG(precio) 
+    FROM Servicio
+);
+```
+
+Descripción:
+Esta consulta lista los nombres de los servicios cuyo precio es mayor al promedio de todos los precios registrados en la tabla Servicio.
+
+**Características importantes de la consulta:**
+
+- 📊 Función de agregación:
+
+AVG(precio) calcula el precio promedio de todos los servicios.
+
+- 🔍 Subconsulta:
+
+La subconsulta (SELECT AVG(precio) FROM Servicio) se evalúa primero y luego se compara con cada precio individual en la tabla principal.
+
+- ❓ Condición de filtrado:
+
+Se usa precio > (...) para devolver únicamente los servicios más costosos que el promedio general.
+
+### Servicios más económicos que el promedio
+
+```sql
+-- Servicios mas económicos
+SELECT nombre 
+FROM Servicio 
+WHERE precio < (
+    SELECT AVG(precio) 
+    FROM Servicio
+);
+
+```
+
+Descripción:
+Esta consulta retorna los nombres de los servicios cuyo precio es inferior al promedio de todos los servicios disponibles.
+
+**Características de la consulta:**
+
+- 📊 Función de agregación:
+
+AVG(precio) se utiliza para calcular el promedio de los precios registrados.
+
+- 🔁 Subconsulta:
+
+(SELECT AVG(precio) FROM Servicio) es una subconsulta escalar que devuelve un solo valor (el promedio).
+
+- 🧮 Comparación:
+
+Se utiliza la condición precio < (...) para identificar los servicios más económicos.
+
+### Promedio redondeado de los precios de los servicios
+
+```sql
+-- Promedio de los precios
+SELECT ROUND(AVG(precio), 2) AS promedio_redondeado
+FROM Servicio;
+
+```
+
+Descripción:
+Esta consulta calcula el promedio del precio de todos los servicios registrados en la base de datos y lo redondea a 2 decimales.
+
+**Características de la consulta:**
+
+- 🔁 Función de agregación:
+
+AVG(precio) se usa para obtener el promedio de los precios.
+
+- 🧮 Redondeo de decimales:
+
+ROUND(..., 2) redondea el resultado del promedio a 2 cifras decimales.
+
+- 🏷️ Alias en función de agregación:
+
+El resultado es renombrado como promedio_redondeado usando AS.
+
+### Número de mascotas registradas por especie
+
+```sql
+-- Número de mascotas registradas por especie
+SELECT especie, COUNT(*) AS cantidad_mascotas
+FROM Mascota
+GROUP BY especie;
+
+```
+
+Descripción:
+Esta consulta permite contar cuántas mascotas hay registradas de cada especie (por ejemplo, perros, gatos, aves, etc.) en la tabla Mascota.
+
+**Características de la consulta:**
+
+- 📊 Función de agregación:
+
+COUNT(*) cuenta la cantidad total de mascotas por cada especie.
+
+- 🔠 Cláusula GROUP BY:
+
+Agrupa los registros según la columna especie.
+
+- 🏷️ Alias de campo calculado:
+
+AS cantidad_mascotas renombra el resultado del conteo para mayor claridad.
+
+### Nombres de los servicios en mayúscula
+
+```sql
+-- Nombres de los servicios en mayuscula
+SELECT nombre, UPPER(nombre) AS nombre_mayuscula
+FROM Servicio;
+
+```
+
+Descripción:
+Esta consulta muestra el nombre original de cada servicio y su versión en mayúsculas, utilizando la función UPPER.
+
+**Características de la consulta:**
+
+- 🔤 Función de texto UPPER():
+Convierte el texto del campo nombre a mayúsculas.
+
+- 🏷️ Alias de campo calculado:
+Se utiliza AS nombre_mayuscula para darle un nombre descriptivo al resultado de la conversión.
+
+
+### Mostrar nombres en minúscula
+
+```sql
+-- Clasificacion de la hora ("Mañana, "Tarde")
+SELECT idCita, hora,
+    IF(hora < '12:00:00', 'Mañana', 'Tarde') AS turno
+FROM Cita;
+```
+
+Descripción:
+Esta consulta muestra los nombres registrados en la tabla Dueno y los transforma a minúsculas para efectos de normalización o presentación.
+
+Nota: Aunque el comentario menciona "servicios", la consulta está aplicada correctamente sobre la tabla Dueno, que contiene los nombres de los dueños de mascotas.
+
+**Características destacadas:**
+
+- 🔤 Uso de LOWER():
+Convierte el texto del campo nombre a minúsculas, lo cual es útil para comparaciones sin distinción entre mayúsculas/minúsculas o para estandarizar visualmente los datos.
+
+- 🧾 Alias nombre_minuscula:
+Asigna un nuevo nombre a la columna transformada para mejorar la claridad del resultado.
+
+### Longitud del nombre de cada mascota
+
+```sql
+-- Longuitud del nombre de cada mascota
+SELECT nombre, LENGTH(nombre) AS longitud_nombre
+FROM Mascota;
+
+```
+
+Descripción:
+Esta consulta obtiene el nombre de cada mascota y calcula la cantidad de caracteres que tiene dicho nombre, usando la función LENGTH.
+
+**Características destacadas:**
+
+- 🔢 Función LENGTH():
+Devuelve la longitud (número de caracteres) del valor en el campo nombre.
+
+- 🏷️ Alias de campo calculado:
+El resultado del LENGTH(nombre) se muestra como longitud_nombre, lo que mejora la legibilidad.
+
+### Extraer los primeros 3 caracteres de la especie
+
+```sql
+-- Extraer los primeros 3 caracteres de la especie
+SELECT especie, SUBSTRING(especie, 1, 3) AS especie_corta
+FROM Mascota;
+
+```
+
+Descripción:
+Esta consulta selecciona la especie de cada mascota y extrae solo sus 3 primeros caracteres, usando la función SUBSTRING.
+
+**Características destacadas:**
+
+- ✂️ Función SUBSTRING(campo, inicio, longitud):
+Toma los primeros 3 caracteres del campo especie, comenzando en la posición 1.
+
+- 🏷️ Alias especie_corta:
+El resultado se muestra bajo este nombre, facilitando su comprensión.
+
+### Eliminar espacios al inicio y final del nombre del dueño
+
+```sql
+-- Eliminar espacios al inicio y final del nombre del dueño
+SELECT nombre, TRIM(nombre) AS nombre_sin_espacios
+FROM Dueno;
+```
+
+Descripción:
+Esta consulta muestra el nombre de cada dueño y aplica la función TRIM para eliminar cualquier espacio en blanco al principio y al final del nombre.
+
+**Características destacadas:**
+
+- 🧼 Función TRIM(campo):
+Elimina los espacios sobrantes a los lados del texto, muy útil cuando los datos se ingresan manualmente o provienen de fuentes externas con formato inconsistente.
+
+- 🏷️ Alias nombre_sin_espacios:
+Se asigna este nombre a la columna resultante para indicar claramente que ya está "limpiada".
+
+### Clasificar Servicios como Costosos o Económicos
+
+```sql
+-- Clasificar Servicios como caros o economicos
+SELECT nombre, precio,
+  IF(precio > 50000, 'Costoso', 'Económico') AS tipo_servicio
+FROM Servicio;
+```
+
+Descripción:
+Esta consulta evalúa el precio de cada servicio y, utilizando la función condicional IF, lo clasifica como "Costoso" si supera los 50.000, o como "Económico" en caso contrario.
+
+**Características destacadas:**
+
+- 🧠 Función IF(condición, valor_si_verdadero, valor_si_falso):
+Permite aplicar lógica condicional directamente en la consulta, muy útil para clasificaciones rápidas.
+
+- 🏷️ Alias tipo_servicio:
+Ayuda a identificar la categoría asignada al servicio en la salida.
+
+### Mostrar el género de cada mascota completamente
+
+```sql
+-- Mostar el genero de cada mascota completamente
+SELECT nombre, sexo,
+	IF(sexo = 'M', 'Macho', 'Hembra') AS genero_texto
+FROM Mascota;
+```
+
+Descripción:
+Esta consulta transforma el valor abreviado del campo sexo ('M' o 'F') en una forma legible y completa: "Macho" o "Hembra", utilizando la función condicional IF.
+
+**Características destacadas:**
+
+- 🧠 Uso de IF:
+Se utiliza para traducir datos codificados a un formato más amigable.
+
+- ✨ Alias genero_texto:
+Permite que el resultado sea más entendible y presentable en reportes.
+
+### Mostrar cita con nombre de la mascota y la fecha
+
+```sql
+-- Mostrar cita con nombre de la mascota y la fecha
+SELECT CONCAT(m.nombre, ' tiene cita el ', c.fecha_cita) AS resumen_cita
+FROM Mascota m
+JOIN Cita c ON m.idMascota = c.Mascota_idMascota;
+```
+
+Descripción:
+Esta consulta genera una frase completa que indica qué mascota tiene una cita y en qué fecha, usando la función CONCAT para unir el nombre de la mascota con la fecha de su cita.
+
+**Características destacadas:**
+
+- 🧩 Uso de CONCAT:
+Permite unir varios campos y cadenas de texto en un solo valor legible.
+
+- 🔗 JOIN entre tablas Mascota y Cita:
+Se vinculan las mascotas con sus citas correspondientes.
+
+- 🏷️ Alias resumen_cita:
+Asigna un nombre representativo a la columna generada.
+
+### 
+
+```sql
+-- Clasificacion de la hora ("Mañana, "Tarde")
+SELECT idCita, hora,
+    IF(hora < '12:00:00', 'Mañana', 'Tarde') AS turno
+FROM Cita;
+```
+
+Descripción:
+Esta consulta clasifica las citas según el momento del día en que ocurren, diferenciando entre "Mañana" y "Tarde" según la hora registrada.
+
+**Características destacadas:**
+
+- 🕐 Uso de IF:
+Evalúa si la hora es antes del mediodía ('12:00:00') y asigna un texto descriptivo: "Mañana" o "Tarde".
+
+- 📋 Selección directa de campos:
+Se listan los campos idCita, hora y un alias turno que indica la clasificación.
+
+- 🔤 Alias turno:
+Hace más clara la interpretación del dato clasificado.
+
+## ✅ Conclusión del Proyecto de Base de Datos: Veterinaria
+El desarrollo de este proyecto permitió la construcción de una base de datos funcional, coherente y adaptada a las necesidades operativas de una clínica veterinaria. A través de un diseño estructurado, se lograron modelar entidades clave como Mascotas, Dueños, Citas, Tratamientos y Servicios, asegurando una representación fiel del entorno real.
+
+Durante la implementación, se aplicaron distintos tipos de consultas SQL para explotar el potencial de la información almacenada. Esto incluyó:
+
+Consultas de agregación (AVG, COUNT) para análisis cuantitativo.
+
+Uso de funciones de cadena (CONCAT, UPPER, LOWER, TRIM) para transformación de texto.
+
+Aplicación de condicionales con IF() para clasificaciones dinámicas de servicios, horarios y géneros.
+
+Subconsultas y alias en subconsultas para generar vistas temporales y extraer información compleja.
+
+Consultas con operadores lógicos y funciones como BETWEEN y SUBSTRING, útiles para filtrado y formato de datos.
+
+Además, se crearon tablas temporales a partir de consultas (CREATE TABLE AS SELECT) que facilitan la generación de reportes específicos, como citas del mes o mascotas con mayor frecuencia de atención.
+
+Este proyecto no solo refuerza habilidades en el uso de SQL para manipulación y análisis de datos, sino que también demuestra cómo una base de datos bien estructurada puede optimizar los procesos administrativos y de atención en un entorno real como lo es una veterinaria.
+
+Finalmente, el trabajo evidencia una correcta normalización de los datos, uso eficiente de funciones SQL y comprensión de las relaciones entre entidades, lo cual establece una base sólida para futuras expansiones del sistema, como el desarrollo de un sistema web o una interfaz administrativa.
