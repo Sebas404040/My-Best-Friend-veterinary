@@ -999,3 +999,5 @@ Además, se crearon tablas temporales a partir de consultas (CREATE TABLE AS SEL
 Este proyecto no solo refuerza habilidades en el uso de SQL para manipulación y análisis de datos, sino que también demuestra cómo una base de datos bien estructurada puede optimizar los procesos administrativos y de atención en un entorno real como lo es una veterinaria.
 
 Finalmente, el trabajo evidencia una correcta normalización de los datos, uso eficiente de funciones SQL y comprensión de las relaciones entre entidades, lo cual establece una base sólida para futuras expansiones del sistema, como el desarrollo de un sistema web o una interfaz administrativa.
+
+Link del video Explicativo: https://drive.google.com/file/d/1Rrxd-aHn4DEx4AYg7EvWPmSLxPeeQXx0/view?usp=sharing
